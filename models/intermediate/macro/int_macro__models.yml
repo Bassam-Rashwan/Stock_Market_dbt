@@ -1,0 +1,767 @@
+version: 2
+
+models:
+
+
+  - name: int_macro__cot_markets
+    description: >
+      Intermediate COT market classification model built from staged COT data.
+      Standardizes market names, assigns each selected market to a high-level
+      asset class, maps markets to internal market codes, and filters out
+      unsupported contracts.
+
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: cot_sk
+        data_type: varchar
+        description: Surrogate key for the COT market and report date combination.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: market_name
+        data_type: varchar
+        description: Standardized COT market and exchange name in uppercase trimmed format.
+        data_tests:
+          - not_null
+
+      - name: report_date
+        data_type: date
+        description: Weekly COT report date.
+        data_tests:
+          - not_null
+
+      - name: commercial_long
+        data_type: bigint
+        description: Commercial trader long positions.
+
+      - name: commercial_short
+        data_type: bigint
+        description: Commercial trader short positions.
+
+      - name: commercial_net
+        data_type: bigint
+        description: Net commercial positioning calculated as commercial long minus commercial short.
+
+      - name: noncommercial_long
+        data_type: bigint
+        description: Non-commercial trader long positions.
+
+      - name: noncommercial_short
+        data_type: bigint
+        description: Non-commercial trader short positions.
+
+      - name: noncommercial_net
+        data_type: bigint
+        description: Net non-commercial positioning calculated as non-commercial long minus non-commercial short.
+
+      - name: nonreportable_long
+        data_type: bigint
+        description: Non-reportable trader long positions.
+
+      - name: nonreportable_short
+        data_type: bigint
+        description: Non-reportable trader short positions.
+
+      - name: nonreportable_net
+        data_type: bigint
+        description: Net non-reportable positioning calculated as non-reportable long minus non-reportable short.
+
+      - name: open_interest
+        data_type: bigint
+        description: Total open interest for the market on the report date.
+
+      - name: cot_asset_class
+        data_type: varchar
+        description: High-level asset class assigned to the COT market.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['equity_index', 'fx', 'rates', 'commodity']
+
+      - name: cot_market_code
+        data_type: varchar
+        description: Standardized internal market code for downstream macro analysis.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        data_type: timestamp
+        description: Timestamp when the record was loaded from the staging model.
+
+
+
+
+
+  - name: int_macro__cot_positioning
+    description: >
+      Intermediate COT positioning model built from staged weekly COT data.
+      Adds normalized positioning metrics, cross-group spreads, and week-over-week
+      changes for commercial, non-commercial, and non-reportable trader groups.
+
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: cot_sk
+        data_type: varchar
+        description: Surrogate key for the COT market and report date combination.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: market_name
+        data_type: varchar
+        description: Market and exchange name from the staged COT model.
+        data_tests:
+          - not_null
+
+      - name: report_date
+        data_type: date
+        description: Weekly COT report date.
+        data_tests:
+          - not_null
+      - name: cot_asset_class
+        data_type: varchar
+        description: High-level asset class assigned to the COT market.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['equity_index', 'fx', 'rates', 'commodity']
+      - name: cot_market_code
+        data_type: varchar
+        description: Standardized internal market code for downstream macro analysis.
+        data_tests:
+          - not_null
+
+      - name: commercial_long
+        data_type: bigint
+        description: Commercial trader long positions.
+
+      - name: commercial_short
+        data_type: bigint
+        description: Commercial trader short positions.
+
+      - name: commercial_net
+        data_type: bigint
+        description: Net commercial positioning calculated as commercial long minus commercial short.
+
+      - name: noncommercial_long
+        data_type: bigint
+        description: Non-commercial trader long positions.
+
+      - name: noncommercial_short
+        data_type: bigint
+        description: Non-commercial trader short positions.
+
+      - name: noncommercial_net
+        data_type: bigint
+        description: Net non-commercial positioning calculated as non-commercial long minus non-commercial short.
+
+      - name: nonreportable_long
+        data_type: bigint
+        description: Non-reportable trader long positions.
+
+      - name: nonreportable_short
+        data_type: bigint
+        description: Non-reportable trader short positions.
+
+      - name: nonreportable_net
+        data_type: bigint
+        description: Net non-reportable positioning calculated as non-reportable long minus non-reportable short.
+
+      - name: open_interest
+        data_type: bigint
+        description: Total open interest for the market on the report date.
+
+      - name: commercial_long_pct_oi
+        data_type: float
+        description: Commercial long positions as a share of open interest.
+
+      - name: commercial_short_pct_oi
+        data_type: float
+        description: Commercial short positions as a share of open interest.
+
+      - name: commercial_net_pct_oi
+        data_type: float
+        description: Commercial net positioning as a share of open interest.
+
+      - name: noncommercial_long_pct_oi
+        data_type: float
+        description: Non-commercial long positions as a share of open interest.
+
+      - name: noncommercial_short_pct_oi
+        data_type: float
+        description: Non-commercial short positions as a share of open interest.
+
+      - name: noncommercial_net_pct_oi
+        data_type: float
+        description: Non-commercial net positioning as a share of open interest.
+
+      - name: nonreportable_long_pct_oi
+        data_type: float
+        description: Non-reportable long positions as a share of open interest.
+
+      - name: nonreportable_short_pct_oi
+        data_type: float
+        description: Non-reportable short positions as a share of open interest.
+
+      - name: nonreportable_net_pct_oi
+        data_type: float
+        description: Non-reportable net positioning as a share of open interest.
+
+      - name: commercial_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in commercial net positioning.
+
+      - name: noncommercial_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in non-commercial net positioning.
+
+      - name: nonreportable_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in non-reportable net positioning.
+
+      - name: commercial_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in non-commercial net positioning as a share of open interest.
+
+      - name: nonreportable_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in non-reportable net positioning as a share of open interest.
+
+      - name: spec_vs_hedger_net_spread
+        data_type: bigint
+        description: Difference between non-commercial net positioning and commercial net positioning.
+
+      - name: spec_vs_hedger_net_spread_pct_oi
+        data_type: float
+        description: Difference between non-commercial and commercial net positioning as a share of open interest.
+
+      - name: noncommercial_directional_bias_pct_oi
+        data_type: float
+        description: Non-commercial directional bias measured as long percentage of open interest minus short percentage of open interest.
+
+      - name: commercial_directional_bias_pct_oi
+        data_type: float
+        description: Commercial directional bias measured as long percentage of open interest minus short percentage of open interest.
+
+      - name: open_interest_wow_change
+        data_type: bigint
+        description: Week-over-week change in total open interest.
+
+      - name: open_interest_wow_pct_change
+        data_type: float
+        description: Week-over-week percentage change in total open interest.
+
+      - name: loaded_at
+        data_type: timestamp
+        description: Timestamp when the record was loaded from the staging model.
+
+
+
+
+  - name: int_macro__cot_zscores
+    description: >
+      Intermediate COT normalization model built from COT positioning data.
+      Adds rolling 52-week min, max, average, standard deviation, COT index values,
+      z-scores, and full-sample percentiles for commercial and non-commercial positioning.
+
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: cot_sk
+        data_type: varchar
+        description: Surrogate key for the COT market and report date combination.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: market_name
+        data_type: varchar
+        description: Market and exchange name from the positioning model.
+        data_tests:
+          - not_null
+
+      - name: report_date
+        data_type: date
+        description: Weekly COT report date.
+        data_tests:
+          - not_null
+
+      - name: cot_asset_class
+        data_type: varchar
+        description: High-level asset class assigned to the COT market.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['equity_index', 'fx', 'rates', 'commodity']
+      - name: cot_market_code
+        data_type: varchar
+        description: Standardized internal market code for downstream macro analysis.
+        data_tests:
+          - not_null
+
+      - name: commercial_long
+        data_type: bigint
+        description: Commercial trader long positions.
+
+      - name: commercial_short
+        data_type: bigint
+        description: Commercial trader short positions.
+
+      - name: commercial_net
+        data_type: bigint
+        description: Net commercial positioning.
+
+      - name: noncommercial_long
+        data_type: bigint
+        description: Non-commercial trader long positions.
+
+      - name: noncommercial_short
+        data_type: bigint
+        description: Non-commercial trader short positions.
+
+      - name: noncommercial_net
+        data_type: bigint
+        description: Net non-commercial positioning.
+
+      - name: nonreportable_long
+        data_type: bigint
+        description: Non-reportable trader long positions.
+
+      - name: nonreportable_short
+        data_type: bigint
+        description: Non-reportable trader short positions.
+
+      - name: nonreportable_net
+        data_type: bigint
+        description: Net non-reportable positioning.
+
+      - name: open_interest
+        data_type: bigint
+        description: Total open interest for the market on the report date.
+
+      - name: commercial_long_pct_oi
+        data_type: float
+        description: Commercial long positions as a share of open interest.
+
+      - name: commercial_short_pct_oi
+        data_type: float
+        description: Commercial short positions as a share of open interest.
+
+      - name: commercial_net_pct_oi
+        data_type: float
+        description: Commercial net positioning as a share of open interest.
+
+      - name: noncommercial_long_pct_oi
+        data_type: float
+        description: Non-commercial long positions as a share of open interest.
+
+      - name: noncommercial_short_pct_oi
+        data_type: float
+        description: Non-commercial short positions as a share of open interest.
+
+      - name: noncommercial_net_pct_oi
+        data_type: float
+        description: Non-commercial net positioning as a share of open interest.
+
+      - name: nonreportable_long_pct_oi
+        data_type: float
+        description: Non-reportable long positions as a share of open interest.
+
+      - name: nonreportable_short_pct_oi
+        data_type: float
+        description: Non-reportable short positions as a share of open interest.
+
+      - name: nonreportable_net_pct_oi
+        data_type: float
+        description: Non-reportable net positioning as a share of open interest.
+
+      - name: commercial_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in commercial net positioning.
+
+      - name: noncommercial_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in non-commercial net positioning.
+
+      - name: nonreportable_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in non-reportable net positioning.
+
+      - name: commercial_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in non-commercial net positioning as a share of open interest.
+
+      - name: nonreportable_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in non-reportable net positioning as a share of open interest.
+
+      - name: spec_vs_hedger_net_spread
+        data_type: bigint
+        description: Difference between non-commercial and commercial net positioning.
+
+      - name: spec_vs_hedger_net_spread_pct_oi
+        data_type: float
+        description: Difference between non-commercial and commercial net positioning as a share of open interest.
+
+      - name: noncommercial_directional_bias_pct_oi
+        data_type: float
+        description: Non-commercial directional bias measured as long share of open interest minus short share of open interest.
+
+      - name: commercial_directional_bias_pct_oi
+        data_type: float
+        description: Commercial directional bias measured as long share of open interest minus short share of open interest.
+
+      - name: open_interest_wow_change
+        data_type: bigint
+        description: Week-over-week change in total open interest.
+
+      - name: open_interest_wow_pct_change
+        data_type: float
+        description: Week-over-week percentage change in total open interest.
+
+      - name: noncommercial_net_pct_oi_52w_min
+        data_type: float
+        description: Rolling 52-week minimum of non-commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_52w_max
+        data_type: float
+        description: Rolling 52-week maximum of non-commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_52w_min
+        data_type: float
+        description: Rolling 52-week minimum of commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_52w_max
+        data_type: float
+        description: Rolling 52-week maximum of commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_52w_avg
+        data_type: float
+        description: Rolling 52-week average of non-commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_52w_std
+        data_type: float
+        description: Rolling 52-week sample standard deviation of non-commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_52w_avg
+        data_type: float
+        description: Rolling 52-week average of commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_52w_std
+        data_type: float
+        description: Rolling 52-week sample standard deviation of commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_full_sample_percentile
+        data_type: float
+        description: Full-sample percentile rank of non-commercial net positioning as a share of open interest within each market.
+
+      - name: commercial_net_pct_oi_full_sample_percentile
+        data_type: float
+        description: Full-sample percentile rank of commercial net positioning as a share of open interest within each market.
+
+      - name: noncommercial_cot_index_52w
+        data_type: float
+        description: Rolling 52-week COT index for non-commercial net positioning.
+
+      - name: commercial_cot_index_52w
+        data_type: float
+        description: Rolling 52-week COT index for commercial net positioning.
+
+      - name: noncommercial_net_pct_oi_zscore_52w
+        data_type: float
+        description: Rolling 52-week z-score for non-commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_zscore_52w
+        data_type: float
+        description: Rolling 52-week z-score for commercial net positioning as a share of open interest.
+
+      - name: loaded_at
+        data_type: timestamp
+        description: Timestamp when the record was loaded from the upstream positioning model.        
+
+
+
+
+
+  - name: int_macro__cot_regime_flags
+    description: >
+      Final intermediate COT regime model built from normalized COT positioning metrics.
+      Adds simple regime labels for commercial and non-commercial trader positioning
+      using 52-week COT index thresholds and 52-week z-score thresholds.
+
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: cot_sk
+        data_type: varchar
+        description: Surrogate key for the COT market and report date combination.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: market_name
+        data_type: varchar
+        description: Market and exchange name from the upstream COT model.
+        data_tests:
+          - not_null
+
+      - name: report_date
+        data_type: date
+        description: Weekly COT report date.
+        data_tests:
+          - not_null
+      - name: cot_asset_class
+        data_type: varchar
+        description: High-level asset class assigned to the COT market.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['equity_index', 'fx', 'rates', 'commodity']
+      - name: cot_market_code
+        data_type: varchar
+        description: Standardized internal market code for downstream macro analysis.
+        data_tests:
+          - not_null
+
+      - name: commercial_long
+        data_type: bigint
+        description: Commercial trader long positions.
+
+      - name: commercial_short
+        data_type: bigint
+        description: Commercial trader short positions.
+
+      - name: commercial_net
+        data_type: bigint
+        description: Net commercial positioning.
+
+      - name: noncommercial_long
+        data_type: bigint
+        description: Non-commercial trader long positions.
+
+      - name: noncommercial_short
+        data_type: bigint
+        description: Non-commercial trader short positions.
+
+      - name: noncommercial_net
+        data_type: bigint
+        description: Net non-commercial positioning.
+
+      - name: nonreportable_long
+        data_type: bigint
+        description: Non-reportable trader long positions.
+
+      - name: nonreportable_short
+        data_type: bigint
+        description: Non-reportable trader short positions.
+
+      - name: nonreportable_net
+        data_type: bigint
+        description: Net non-reportable positioning.
+
+      - name: open_interest
+        data_type: bigint
+        description: Total open interest for the market on the report date.
+
+      - name: commercial_long_pct_oi
+        data_type: float
+        description: Commercial long positions as a share of open interest.
+
+      - name: commercial_short_pct_oi
+        data_type: float
+        description: Commercial short positions as a share of open interest.
+
+      - name: commercial_net_pct_oi
+        data_type: float
+        description: Commercial net positioning as a share of open interest.
+
+      - name: noncommercial_long_pct_oi
+        data_type: float
+        description: Non-commercial long positions as a share of open interest.
+
+      - name: noncommercial_short_pct_oi
+        data_type: float
+        description: Non-commercial short positions as a share of open interest.
+
+      - name: noncommercial_net_pct_oi
+        data_type: float
+        description: Non-commercial net positioning as a share of open interest.
+
+      - name: nonreportable_long_pct_oi
+        data_type: float
+        description: Non-reportable long positions as a share of open interest.
+
+      - name: nonreportable_short_pct_oi
+        data_type: float
+        description: Non-reportable short positions as a share of open interest.
+
+      - name: nonreportable_net_pct_oi
+        data_type: float
+        description: Non-reportable net positioning as a share of open interest.
+
+      - name: commercial_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in commercial net positioning.
+
+      - name: noncommercial_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in non-commercial net positioning.
+
+      - name: nonreportable_net_wow_change
+        data_type: bigint
+        description: Week-over-week change in non-reportable net positioning.
+
+      - name: commercial_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in non-commercial net positioning as a share of open interest.
+
+      - name: nonreportable_net_pct_oi_wow_change
+        data_type: float
+        description: Week-over-week change in non-reportable net positioning as a share of open interest.
+
+      - name: spec_vs_hedger_net_spread
+        data_type: bigint
+        description: Difference between non-commercial and commercial net positioning.
+
+      - name: spec_vs_hedger_net_spread_pct_oi
+        data_type: float
+        description: Difference between non-commercial and commercial net positioning as a share of open interest.
+
+      - name: noncommercial_directional_bias_pct_oi
+        data_type: float
+        description: Non-commercial directional bias measured as long share of open interest minus short share of open interest.
+
+      - name: commercial_directional_bias_pct_oi
+        data_type: float
+        description: Commercial directional bias measured as long share of open interest minus short share of open interest.
+
+      - name: open_interest_wow_change
+        data_type: bigint
+        description: Week-over-week change in total open interest.
+
+      - name: open_interest_wow_pct_change
+        data_type: float
+        description: Week-over-week percentage change in total open interest.
+
+      - name: noncommercial_net_pct_oi_52w_min
+        data_type: float
+        description: Rolling 52-week minimum of non-commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_52w_max
+        data_type: float
+        description: Rolling 52-week maximum of non-commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_52w_min
+        data_type: float
+        description: Rolling 52-week minimum of commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_52w_max
+        data_type: float
+        description: Rolling 52-week maximum of commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_52w_avg
+        data_type: float
+        description: Rolling 52-week average of non-commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_52w_std
+        data_type: float
+        description: Rolling 52-week sample standard deviation of non-commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_52w_avg
+        data_type: float
+        description: Rolling 52-week average of commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_52w_std
+        data_type: float
+        description: Rolling 52-week sample standard deviation of commercial net positioning as a share of open interest.
+
+      - name: noncommercial_net_pct_oi_full_sample_percentile
+        data_type: float
+        description: Full-sample percentile rank of non-commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_full_sample_percentile
+        data_type: float
+        description: Full-sample percentile rank of commercial net positioning as a share of open interest.
+
+      - name: noncommercial_cot_index_52w
+        data_type: float
+        description: Rolling 52-week COT index for non-commercial net positioning.
+
+      - name: commercial_cot_index_52w
+        data_type: float
+        description: Rolling 52-week COT index for commercial net positioning.
+
+      - name: noncommercial_net_pct_oi_zscore_52w
+        data_type: float
+        description: Rolling 52-week z-score for non-commercial net positioning as a share of open interest.
+
+      - name: commercial_net_pct_oi_zscore_52w
+        data_type: float
+        description: Rolling 52-week z-score for commercial net positioning as a share of open interest.
+
+      - name: noncommercial_cot_regime_52w
+        data_type: varchar
+        description: Regime label for non-commercial positioning based on the 52-week COT index.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['extreme_long', 'extreme_short', 'neutral']
+
+      - name: commercial_cot_regime_52w
+        data_type: varchar
+        description: Regime label for commercial positioning based on the 52-week COT index.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['extreme_long', 'extreme_short', 'neutral']
+
+      - name: noncommercial_zscore_regime_52w
+        data_type: varchar
+        description: Regime label for non-commercial positioning based on the 52-week z-score.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['extreme_long', 'extreme_short', 'neutral']
+
+      - name: commercial_zscore_regime_52w
+        data_type: varchar
+        description: Regime label for commercial positioning based on the 52-week z-score.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['extreme_long', 'extreme_short', 'neutral']
+
+      - name: loaded_at
+        data_type: timestamp
+        description: Timestamp when the record was loaded from the upstream z-score model.

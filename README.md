@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Stock Research dbt Project
 
 A modular dbt project for equity research and macro analysis, combining market data, company fundamentals, financial ratios, and COT-based positioning signals into analytics-ready models.[1][2][3][4][5]
@@ -84,3 +85,20 @@ dbt build --select mart_equity__daily_market
 ## Next ideas
 
 Possible future additions include PIT-style point-in-time integration, richer equity-to-macro mapping, factor backtesting marts, and documentation generated from dbt docs metadata.[6][7]
+=======
+Welcome to your new dbt project!
+
+### Using the starter project
+
+Try running the following commands:
+- dbt run
+- dbt test
+
+
+### Resources:
+- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
+- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
+- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
+- Find [dbt events](https://events.getdbt.com) near you
+- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+>>>>>>> 33ac63a (Add gitattributes and normalize line endings)

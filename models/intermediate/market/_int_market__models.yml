@@ -1,0 +1,269 @@
+version: 2
+
+models:
+  - name: int_market__daily_returns
+    description: >
+      Daily market return model with one row per ticker and trade_date.
+      Includes adjusted-close returns, log returns, raw-close returns,
+      volume change, intraday return, and daily range features.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: daily_returns_sk
+        data_type: varchar
+        description: Surrogate key for ticker and trade_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol.
+        data_tests:
+          - not_null
+
+      - name: trade_date
+        data_type: date
+        description: Trading date.
+        data_tests:
+          - not_null
+
+      - name: open
+        data_type: numeric(18, 6)
+      - name: high
+        data_type: numeric(18, 6)
+      - name: low
+        data_type: numeric(18, 6)
+      - name: close
+        data_type: numeric(18, 6)
+      - name: adj_close
+        data_type: numeric(18, 6)
+      - name: volume
+        data_type: bigint
+
+      - name: daily_return
+        data_type: numeric(18, 8)
+        description: Simple daily return based on adjusted close.
+
+      - name: daily_log_return
+        data_type: numeric(18, 8)
+        description: Log daily return based on adjusted close.
+
+      - name: daily_return_close
+        data_type: numeric(18, 8)
+        description: Simple daily return based on raw close.
+
+      - name: volume_return
+        data_type: bigint
+        description: Daily percent change in trading volume.
+
+      - name: intraday_return
+        data_type: numeric(18, 8)
+        description: Return from open to close.
+
+      - name: daily_range_pct
+        data_type: numeric(18, 8)
+        description: Daily high-low range scaled by low price.
+
+
+
+  - name: int_market__rolling_features
+    description: >
+      Rolling market features by ticker and trade_date, built from daily returns.
+      Includes rolling mean returns, trailing returns, rolling volatility,
+      moving averages, and price-vs-moving-average signals.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: rolling_features_sk
+        data_type: varchar
+        description: Surrogate key for ticker and trade_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        data_tests:
+          - not_null
+
+      - name: trade_date
+        data_type: date
+        data_tests:
+          - not_null
+
+      - name: adj_close
+        data_type: numeric
+      - name: volume
+        data_type: bigint
+      - name: daily_return
+        data_type: numeric
+      - name: daily_log_return
+        data_type: numeric
+      - name: intraday_return
+        data_type: numeric
+      - name: daily_range_pct
+        data_type: numeric
+
+      - name: avg_return_5d
+        data_type: numeric
+      - name: avg_return_21d
+        data_type: numeric
+      - name: volatility_21d
+        data_type: numeric
+      - name: volatility_63d
+        data_type: numeric
+
+      - name: sma_10d
+        data_type: numeric
+      - name: sma_20d
+        data_type: numeric
+      - name: sma_50d
+        data_type: numeric
+
+      - name: return_5d
+        data_type: numeric
+      - name: return_21d
+        data_type: numeric
+      - name: return_63d
+        data_type: numeric
+
+      - name: price_to_sma20_pct
+        data_type: numeric
+      - name: price_to_sma50_pct
+        data_type: numeric        
+
+
+  - name: int_market__technical_signals
+    description: >
+      Technical signal layer built from rolling market features.
+      Includes trend regime classification, moving-average relationship flags,
+      crossover events, momentum confirmation, and extension signals.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: technical_signal_sk
+        data_type: varchar
+        description: Surrogate key for ticker and trade_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        data_tests:
+          - not_null
+
+      - name: trade_date
+        data_type: date
+        data_tests:
+          - not_null
+
+      - name: adj_close
+        data_type: numeric
+      - name: daily_return
+        data_type: numeric
+      - name: avg_return_5d
+        data_type: numeric
+      - name: avg_return_21d
+        data_type: numeric
+      - name: volatility_21d
+        data_type: numeric
+      - name: sma_10d
+        data_type: numeric
+      - name: sma_20d
+        data_type: numeric
+      - name: sma_50d
+        data_type: numeric
+      - name: return_5d
+        data_type: numeric
+      - name: return_21d
+        data_type: numeric
+      - name: return_63d
+        data_type: numeric
+      - name: price_to_sma20_pct
+        data_type: numeric
+      - name: price_to_sma50_pct
+        data_type: numeric
+
+      - name: price_trend_regime
+        data_type: varchar
+      - name: sma10_above_sma20_flag
+        data_type: integer
+      - name: sma20_above_sma50_flag
+        data_type: integer
+      - name: bullish_sma10_sma20_cross
+        data_type: integer
+      - name: bearish_sma10_sma20_cross
+        data_type: integer
+      - name: bullish_sma20_sma50_cross
+        data_type: integer
+      - name: bearish_sma20_sma50_cross
+        data_type: integer
+      - name: momentum_confirmed_flag
+        data_type: integer
+      - name: downside_momentum_flag
+        data_type: integer
+      - name: extended_above_sma20_flag
+        data_type: integer
+      - name: extended_below_sma20_flag
+        data_type: integer
+
+
+  - name: int_market__volume_signals
+    description: >
+      Volume signal model built from daily market returns.
+      Includes rolling average volume, relative volume, volume spike flags,
+      volume trend, price-volume confirmation flags, and dollar volume.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: volume_signal_sk
+        data_type: varchar
+        description: Surrogate key for ticker and trade_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        data_tests:
+          - not_null
+
+      - name: trade_date
+        data_type: date
+        data_tests:
+          - not_null
+
+      - name: volume
+        data_type: bigint
+      - name: adj_close
+        data_type: numeric
+      - name: daily_return
+        data_type: numeric
+      - name: avg_volume_10d
+        data_type: numeric
+      - name: avg_volume_20d
+        data_type: numeric
+      - name: relative_volume_20d
+        data_type: numeric
+        description: Current volume divided by 20-day average volume.
+      - name: volume_spike_flag
+        data_type: integer
+        description: 1 if volume exceeds 2x the 20-day average.
+      - name: volume_trend_5d_vs_20d
+        data_type: numeric
+        description: 5-day average volume relative to 20-day average volume.
+      - name: bullish_volume_confirmation
+        data_type: integer
+        description: 1 if price up and volume above 20-day average.
+      - name: bearish_volume_confirmation
+        data_type: integer
+        description: 1 if price down and volume above 20-day average.
+      - name: dollar_volume
+        data_type: numeric
+        description: Adjusted close multiplied by volume.        

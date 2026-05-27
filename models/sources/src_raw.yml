@@ -1,0 +1,245 @@
+
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+
+    tables:
+      - name: Daily_Prices
+        description: "Raw stock price data from the source system."
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 30, period: day}
+            error_after: {count: 290, period: day}
+        columns:
+          - name: Date
+            description: "The date of the stock price record."
+          - name: Ticker
+            description: "The stock ticker symbol."
+          - name: open
+            description: "The opening price of the stock on the given date."
+          - name: High
+            description: "The highest price of the stock on the given date."
+          - name: Low
+            description: "The lowest price of the stock on the given date."
+          - name: Close
+            description: "The closing price of the stock on the given date."
+          - name: Volume
+            description: "The trading volume of the stock on the given date."
+          - name: Adj Close
+            description: "The adjusted closing price of the stock on the given date, accounting for dividends and stock splits."
+
+      - name: Fundamentals
+        description: "Raw stock price data from the source system."
+        config:
+          loaded_at_field: ingested_at
+          freshness:
+            warn_after: {count: 40, period: day}
+            error_after: {count: 90, period: day}
+        columns:
+         - name: ticker
+           description: "The stock ticker symbol."
+         - name: metric_name
+           description: "Name of a specific financial metric for the stock."
+         - name: period_type
+           description: "annual, quarterly."
+         - name: fiscal_date
+           description: "The fiscal date for which the financial metric is reported."
+         - name: value
+           description: "The actual value of the financial metric for the stock on the given fiscal date."
+         - name: ingested_at
+           description: "The timestamp when the data was ingested into the raw layer."
+
+      - name: COT
+        description: "Contains the COT data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 9, period: day}
+            error_after: {count: 50, period: day}
+
+      - name: PS_Ratio
+        description: "Contains the PS Ratio data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the PS Ratio record."
+         - name: Stock Price
+           description: "The stock price on the given date."
+         - name: TTM Sales per Share
+           description: "The trailing twelve months sales per share on the given date."
+         - name: PS Ratio
+           description: "The price-to-sales ratio calculated as Stock Price divided by TTM Sales per Share on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol."
+
+      - name: PB_Ratio
+        description: "Contains the PB Ratio data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the PB Ratio record."
+         - name: Stock Price
+           description: "The stock price on the given date."
+         - name: Book Value per Share
+           description: "The book value per share on the given date."
+         - name: PB Ratio
+           description: "The price-to-book ratio calculated as Stock Price divided by Book Value per Share on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol."     
+           test:
+             - not_null
+
+      - name: PE_Ratio
+        description: "Contains the PE Ratio data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the PE Ratio record."
+         - name: Stock Price
+           description: "The stock price on the given date."
+         - name: TTM Net EPS
+           description: "The trailing twelve months net earnings per share on the given date."
+         - name: PE Ratio
+           description: "The price-to-earnings ratio calculated as Stock Price divided by TTM Net EPS on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol." 
+
+      - name: Price_FCF_Ratio
+        description: "Contains the Price to Free Cash Flow Ratio data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the Price to Free Cash Flow Ratio record."
+         - name: Stock Price
+           description: "The stock price on the given date."
+         - name: TTM FCF per Share
+           description: "The trailing twelve months free cash flow per share on the given date."
+         - name: Price/FCF
+           description: "The price-to-free cash flow ratio calculated as Stock Price divided by TTM Free Cash Flow per Share on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol."
+
+      - name: ROA
+        description: "Contains the Return on Assets data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the Return on Assets record."
+         - name: TTM Net Income
+           description: "The trailing twelve months net income on the given date."
+         - name: Total Assets
+           description: "The total assets on the given date."
+         - name: Return on Assets
+           description: "The return on assets calculated as TTM Net Income divided by Total Assets on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol."  
+
+      - name: ROE
+        description: "Contains the Return on Equity data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the Return on Equity record."
+         - name: TTM Net Income
+           description: "The trailing twelve months net income on the given date."
+         - name: Shareholder Equity
+           description: "The shareholder equity on the given date."
+         - name: Return on Equity
+           description: "The return on equity calculated as TTM Net Income divided by Total Equity on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol."     
+
+      - name: ROI
+        description: "Contains the Return on Investment data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the Return on Investment record."
+         - name: TTM Net Income
+           description: "The trailing twelve months net income on the given date."
+         - name: LT Investments & Debt
+           description: "The long-term investments and debt on the given date."
+         - name: Return on Investment
+           description: "The return on investment calculated as TTM Net Income divided by LT Investments & Debt on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol."  
+
+      - name: Net_Profit_Margin
+        description: "Contains the Net Profit Margin data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the Net Profit Margin record."
+         - name: TTM Net Income
+           description: "The trailing twelve months net income on the given date."
+         - name: TTM Revenue
+           description: "The trailing twelve months revenue on the given date."
+         - name: Net Profit Margin
+           description: "The net profit margin calculated as TTM Net Income divided by TTM Revenue on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol."        
+
+      - name: Operating_Margin
+        description: "Contains the Operating Profit Margin data"     
+        config:
+          loaded_at_field: ingestion_date
+          freshness:
+            warn_after: {count: 90, period: day}
+            error_after: {count: 120, period: day}  
+        columns:
+         - name: Date
+           description: "The date of the Operating Profit Margin record."
+         - name: TTM Operating Income
+           description: "The trailing twelve months operating income on the given date."
+         - name: TTM Revenue
+           description: "The trailing twelve months revenue on the given date."
+         - name: Operating Margin
+           description: "The operating margin calculated as TTM Operating Income divided by TTM Revenue on the given date."
+         - name: Ticker
+           description: "The stock ticker symbol."
+
+      - name: TickerName
+        description: "Raw ticker reference table with company name and industry."
+        columns:
+          - name: Ticker
+            description: "Stock ticker symbol."
+          - name: Stock_Name
+            description: "Company display name."
+          - name: Industry
+            description: "Industry classification."       
+

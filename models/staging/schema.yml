@@ -1,0 +1,349 @@
+version: 2
+
+models:
+  - name: stg_market__ohlc_prices
+    description: >
+      Cleaned and renamed OHLC price data. One row per ticker per trading day.
+      No business logic — types cast and columns standardized only.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ohlc_sk
+        data_type: varchar
+        description: Surrogate key on ticker + trade_date
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol
+        data_tests:
+          - not_null
+
+      - name: trade_date
+        data_type: date
+        description: Trading date
+        data_tests:
+          - not_null
+
+      - name: open
+        data_type: numeric
+        description: Opening price
+
+      - name: high
+        data_type: numeric
+        description: Daily high price
+
+      - name: low
+        data_type: numeric
+        description: Daily low price
+
+      - name: close
+        data_type: numeric
+        description: Closing price
+        data_tests:
+          - not_null
+
+      - name: adj_close
+        data_type: numeric
+        description: Split and dividend adjusted closing price
+
+      - name: volume
+        data_type: bigint
+        description: Daily trading volume
+
+      - name: loaded_at
+        data_type: timestamp
+        description: Timestamp when this record was staged
+
+
+
+  - name: stg_finance__fundamentals
+    description: >
+      Cleaned long-format fundamentals data. One row per ticker, metric, fiscal_date, and period_type.
+      No pivoting or derived business logic here.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol
+        data_tests:
+          - not_null
+
+      - name: metric_name
+        data_type: varchar
+        description: Standardized metric name
+        data_tests:
+          - not_null
+
+      - name: period_type
+        data_type: varchar
+        description: Reporting period type such as quarterly or annual
+        data_tests:
+          - not_null
+
+      - name: fiscal_date
+        data_type: date
+        description: Fiscal reporting date
+        data_tests:
+          - not_null
+
+      - name: value
+        data_type: numeric
+        description: Raw metric value
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        data_type: timestamp
+        description: Timestamp when staged
+
+      - name: source
+        data_type: varchar
+        description: Source system label
+
+  - name: stg_ratios__quality_roa
+    description: Cleaned ROA ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: roa
+        data_type: numeric
+      - name: net_income_ttm
+        data_type: numeric
+      - name: total_assets
+        data_type: numeric
+
+  - name: stg_ratios__quality_roe
+    description: Cleaned ROE ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: roe
+        data_type: numeric
+      - name: net_income_ttm
+        data_type: numeric
+      - name: total_equity
+        data_type: numeric
+
+  - name: stg_ratios__quality_roi
+    description: Cleaned ROI ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: roi
+        data_type: numeric
+      - name: net_income_ttm
+        data_type: numeric
+      - name: LT_investments_debt
+        data_type: numeric
+
+  - name: stg_ratios__quality_op_margin
+    description: Cleaned operating margin ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: op_margin
+        data_type: numeric
+      - name: op_income_ttm
+        data_type: numeric
+      - name: revenue_ttm
+        data_type: numeric
+
+  - name: stg_ratios__quality_net_margin
+    description: Cleaned net margin ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: net_profit_margin
+        data_type: numeric
+      - name: net_income_ttm
+        data_type: numeric
+      - name: revenue_ttm
+        data_type: numeric
+      
+  - name: stg_ratios__value_ps
+    description: Cleaned price to sales ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: ps_ratio
+        data_type: numeric
+      - name: stock_price
+        data_type: numeric
+      - name: sales_per_share_ttm
+        data_type: numeric
+            
+  - name: stg_ratios__value_pb
+    description: Cleaned price to book value ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: pb_ratio
+        data_type: numeric
+      - name: stock_price
+        data_type: numeric
+      - name: book_value_per_share
+        data_type: numeric
+
+  - name: stg_ratios__value_pe
+    description: Cleaned price to earnings ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: pe_ratio
+        data_type: numeric
+      - name: stock_price
+        data_type: numeric
+      - name: net_eps_ttm
+        data_type: numeric
+
+  - name: stg_ratios__value_price_fcf
+    description: Cleaned price to free cash flow ratio staging model.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ticker
+        data_type: varchar
+        data_tests: [not_null]
+      - name: fiscal_date
+        data_type: date
+        data_tests: [not_null]
+      - name: p_fcf_ratio
+        data_type: numeric
+      - name: stock_price
+        data_type: numeric
+      - name: fcf_per_share_ttm
+        data_type: numeric                                                
+
+  - name: stg_macro__cot
+    description: >
+      Cleaned and standardized COT report data. One row per market per report date.
+      No business logic — just types cast and columns renamed for clarity.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: cot_sk
+        data_type: varchar
+        description: Surrogate key on market_name + report_date
+        data_tests:
+          - not_null
+          - unique
+
+      - name: market_name
+        data_type: varchar
+        description: Name of the market or exchange
+        data_tests:
+          - not_null
+
+      - name: report_date
+        data_type: date
+        description: Date of the COT report
+        data_tests:
+          - not_null
+
+      - name: commercial_long
+        data_type: bigint
+        description: Total long positions held by commercial traders
+
+      - name: commercial_short
+        data_type: bigint
+        description: Total short positions held by commercial traders
+
+      - name: commercial_net
+        data_type: bigint
+        description: Net position of commercial traders (long minus short)
+
+      - name: noncommercial_long
+        data_type: bigint
+        description: Total long positions held by non-commercial traders (speculators)
+
+      - name: noncommercial_short
+        data_type: bigint
+        description: Total short positions held by non-commercial traders (speculators)
+
+      - name: noncommercial_net
+        data_type: bigint
+        description: Net position of non-commercial traders (long minus short)
+
+      - name: nonreportable_long
+        data_type: bigint
+        description: Total long positions held by non-reportable traders (small traders)
+
+      - name: nonreportable_short
+        data_type: bigint
+        description: Total short positions held by non-reportable traders (small traders)
+
+      - name: nonreportable_net
+        data_type: bigint
+        description: Net position of non-reportable traders (long minus short)
+
+      - name: open_interest
+        data_type: bigint
+        description: Total open interest for the market
+
+      - name: loaded_at
+        data_type: timestamp
+        description: Timestamp when this record was staged      

@@ -1,0 +1,9 @@
+ticker,cot_market_code,mapping_notes
+SPY,sp500,S&P 500 ETF proxy for E-MINI S&P 500 COT
+QQQ,nasdaq100,Nasdaq-100 ETF proxy for E-MINI NASDAQ-100 COT
+DIA,dow,Dow Jones ETF proxy for DJIA futures COT
+IWM,russell2000,Russell 2000 ETF proxy for E-MINI Russell 2000 COT
+GLD,gold,Gold ETF proxy for COMEX gold COT
+SLV,silver,Silver ETF proxy for COMEX silver COT
+USO,wti_crude,WTI crude oil ETF proxy
+TLT,us10y,Long Treasury ETF proxy for 10-year note COT

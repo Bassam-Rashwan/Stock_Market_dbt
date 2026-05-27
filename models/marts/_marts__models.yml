@@ -1,0 +1,348 @@
+version: 2
+
+seeds:
+  - name: int_macro__cot_equity_map
+    description: >
+      Explicit mapping of equity tickers (typically index/commodity/rates ETFs)
+      to standardized COT market codes. Used only for macro overlay marts;
+      unmapped tickers remain in equity-only presentation tables.
+    config:
+      tags: ['mart', 'macro', 'bi']
+    columns:
+      - name: ticker
+        description: Equity symbol to join to daily market marts.
+        data_tests:
+          - not_null
+          - unique
+      - name: cot_market_code
+        description: Internal COT market code from int_macro__cot_markets.
+        data_tests:
+          - not_null
+      - name: mapping_notes
+        description: Human-readable note on why the ticker maps to this COT market.
+
+models:
+  - name: mart_equity__daily_market
+    description: >
+      Primary equity time-series mart for BI and web dashboards at ticker × trade_date grain.
+      Combines technical trend/momentum signals with volume analytics for candlestick,
+      volume bar, return line, and regime KPI charts.
+    config:
+      contract:
+        enforced: true
+      tags: ['mart', 'equity', 'bi']
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - ticker
+              - trade_date
+    columns:
+      - name: daily_market_sk
+        data_type: varchar
+        description: Surrogate key for ticker and trade_date.
+        data_tests:
+          - not_null
+          - unique
+      - name: ticker
+        data_type: varchar
+        description: Equity symbol.
+        data_tests:
+          - not_null
+      - name: trade_date
+        data_type: date
+        description: Trading session date (chart x-axis).
+        data_tests:
+          - not_null
+      - name: adj_close
+        data_type: numeric
+        description: Split/dividend-adjusted close — use for candlestick and price lines.
+      - name: daily_return
+        data_type: numeric
+        description: One-day simple return; KPI tile and return line charts.
+      - name: return_21d
+        data_type: numeric
+        description: Rolling 21-day cumulative return for momentum displays.
+      - name: volatility_21d
+        data_type: numeric
+        description: 21-day realized volatility for risk context on charts.
+      - name: volume
+        data_type: bigint
+        description: Raw share volume for volume bar charts.
+      - name: avg_volume_20d
+        data_type: numeric
+        description: 20-day average volume baseline for comparison bars.
+      - name: relative_volume_20d
+        data_type: numeric
+        description: Volume divided by 20-day average; values above 1 indicate elevated activity.
+      - name: volume_spike_flag
+        data_type: integer
+        description: 1 when volume exceeds 2× the 20-day average (alert KPI).
+      - name: volume_trend_5d_vs_20d
+        data_type: numeric
+        description: Short vs medium volume trend for participation widgets.
+      - name: bullish_volume_confirmation
+        data_type: integer
+        description: 1 when price up on above-average volume (confirmation KPI).
+      - name: bearish_volume_confirmation
+        data_type: integer
+        description: 1 when price down on above-average volume.
+      - name: dollar_volume
+        data_type: numeric
+        description: Adjusted close × volume for liquidity ranking tables.
+      - name: price_trend_regime
+        data_type: varchar
+        description: bullish / bearish / neutral based on SMA stack — primary trend KPI.
+      - name: sma10_above_sma20_flag
+        data_type: integer
+      - name: sma20_above_sma50_flag
+        data_type: integer
+      - name: bullish_sma10_sma20_cross
+        data_type: integer
+      - name: bearish_sma10_sma20_cross
+        data_type: integer
+      - name: bullish_sma20_sma50_cross
+        data_type: integer
+      - name: bearish_sma20_sma50_cross
+        data_type: integer
+      - name: momentum_confirmed_flag
+        data_type: integer
+      - name: downside_momentum_flag
+        data_type: integer
+      - name: extended_above_sma20_flag
+        data_type: integer
+      - name: extended_below_sma20_flag
+        data_type: integer
+
+  - name: mart_equity__latest_snapshot
+    description: >
+      One row per ticker as of the latest trade_date. Feeds security pickers, KPI strips,
+      and top-mover tables with company metadata from ticker reference staging.
+    config:
+      contract:
+        enforced: true
+      tags: ['mart', 'equity', 'bi']
+    columns:
+      - name: latest_snapshot_sk
+        data_type: varchar
+        description: Surrogate key for ticker.
+        data_tests:
+          - not_null
+          - unique
+      - name: ticker
+        data_type: varchar
+        description: Equity symbol (unique grain).
+        data_tests:
+          - not_null
+          - unique
+      - name: latest_trade_date
+        data_type: date
+        description: As-of date for all metrics in this row.
+        data_tests:
+          - not_null
+      - name: company_name
+        data_type: varchar
+        description: Display name for dropdowns and KPI headers.
+      - name: industry
+        data_type: varchar
+        description: Industry classification for sector filters.
+      - name: latest_adj_close
+        data_type: numeric
+        description: Most recent adjusted close price.
+      - name: return_1d
+        data_type: numeric
+        description: Latest one-day return for mover tables.
+      - name: return_21d
+        data_type: numeric
+        description: Latest 21-day return for momentum ranking.
+      - name: volatility_21d
+        data_type: numeric
+        description: Latest 21-day volatility.
+      - name: price_trend_regime
+        data_type: varchar
+        description: Current trend regime label for KPI tiles.
+      - name: volume
+        data_type: bigint
+      - name: avg_volume_20d
+        data_type: numeric
+      - name: relative_volume_20d
+        data_type: numeric
+        description: Latest session volume vs 20-day average.
+      - name: volume_spike_flag
+        data_type: integer
+      - name: sma10_above_sma20_flag
+        data_type: integer
+      - name: sma20_above_sma50_flag
+        data_type: integer
+      - name: momentum_confirmed_flag
+        data_type: integer
+      - name: downside_momentum_flag
+        data_type: integer
+      - name: bullish_volume_confirmation
+        data_type: integer
+      - name: bearish_volume_confirmation
+        data_type: integer
+
+  - name: mart_macro__cot_weekly
+    description: >
+      Weekly COT presentation mart at cot_market_code × report_date grain.
+      Curated positioning, 52-week index/regime labels, and week-over-week changes
+      for macro line charts, asset-class breakdowns, and regime heatmaps.
+    config:
+      contract:
+        enforced: true
+      tags: ['mart', 'macro', 'bi']
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - cot_market_code
+              - report_date
+    columns:
+      - name: cot_weekly_sk
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: cot_market_code
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: market_name
+        data_type: varchar
+        description: CFTC market label for chart legends.
+      - name: cot_asset_class
+        data_type: varchar
+        description: equity_index / fx / rates / commodity — use for pie and filter widgets.
+        data_tests:
+          - not_null
+      - name: report_date
+        data_type: date
+        description: COT report week ending date (macro chart x-axis).
+        data_tests:
+          - not_null
+      - name: commercial_net_pct_oi
+        data_type: float
+        description: Commercial net positioning as share of open interest.
+      - name: noncommercial_net_pct_oi
+        data_type: float
+        description: Non-commercial (speculator) net positioning as share of open interest.
+      - name: nonreportable_net_pct_oi
+        data_type: float
+      - name: noncommercial_cot_index_52w
+        data_type: float
+        description: 0–1 index of speculator positioning vs 52-week range (line chart).
+      - name: commercial_cot_index_52w
+        data_type: float
+        description: 0–1 index of hedger positioning vs 52-week range.
+      - name: noncommercial_cot_regime_52w
+        data_type: varchar
+        description: extreme_long / extreme_short / neutral from COT index thresholds.
+      - name: commercial_cot_regime_52w
+        data_type: varchar
+      - name: noncommercial_zscore_regime_52w
+        data_type: varchar
+        description: Regime from 52-week z-score of net % OI.
+      - name: commercial_zscore_regime_52w
+        data_type: varchar
+      - name: open_interest
+        data_type: bigint
+      - name: commercial_net_wow_change
+        data_type: bigint
+      - name: noncommercial_net_wow_change
+        data_type: bigint
+      - name: nonreportable_net_wow_change
+        data_type: bigint
+      - name: commercial_net_pct_oi_wow_change
+        data_type: float
+      - name: noncommercial_net_pct_oi_wow_change
+        data_type: float
+      - name: open_interest_wow_change
+        data_type: bigint
+      - name: open_interest_wow_pct_change
+        data_type: float
+
+  - name: mart_equity__macro_overlay_daily
+    description: >
+      Daily equity signals for mapped ETF/index proxies with as-of weekly COT context.
+      Grain is ticker × trade_date for symbols in int_macro__cot_equity_map only.
+      Supports dual-axis price/COT charts and filtered screens (e.g. bullish technical
+      plus extreme_short speculator COT).
+    config:
+      contract:
+        enforced: true
+      tags: ['mart', 'equity', 'macro', 'bi']
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - ticker
+              - trade_date
+    columns:
+      - name: macro_overlay_daily_sk
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: ticker
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: trade_date
+        data_type: date
+        data_tests:
+          - not_null
+      - name: cot_market_code
+        data_type: varchar
+        description: Linked COT market from equity map seed.
+        data_tests:
+          - not_null
+      - name: cot_report_date
+        data_type: date
+        description: Most recent COT report date on or before trade_date (as-of join).
+        data_tests:
+          - not_null
+      - name: adj_close
+        data_type: numeric
+      - name: daily_return
+        data_type: numeric
+      - name: return_21d
+        data_type: numeric
+      - name: volatility_21d
+        data_type: numeric
+      - name: price_trend_regime
+        data_type: varchar
+      - name: volume
+        data_type: bigint
+      - name: relative_volume_20d
+        data_type: numeric
+      - name: volume_spike_flag
+        data_type: integer
+      - name: momentum_confirmed_flag
+        data_type: integer
+      - name: downside_momentum_flag
+        data_type: integer
+      - name: cot_market_name
+        data_type: varchar
+      - name: cot_asset_class
+        data_type: varchar
+      - name: cot_commercial_net_pct_oi
+        data_type: float
+      - name: cot_noncommercial_net_pct_oi
+        data_type: float
+      - name: noncommercial_cot_index_52w
+        data_type: float
+      - name: commercial_cot_index_52w
+        data_type: float
+      - name: noncommercial_cot_regime_52w
+        data_type: varchar
+      - name: commercial_cot_regime_52w
+        data_type: varchar
+      - name: noncommercial_zscore_regime_52w
+        data_type: varchar
+      - name: commercial_zscore_regime_52w
+        data_type: varchar
+      - name: cot_open_interest
+        data_type: bigint
+      - name: cot_noncommercial_net_pct_oi_wow_change
+        data_type: float

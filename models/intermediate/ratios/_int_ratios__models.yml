@@ -1,0 +1,294 @@
+version: 2
+
+models:
+  - name: int_ratios__quality_unified
+    description: >
+      Unified quality ratios table with one row per ticker and fiscal_date.
+      Combines ROA, ROE, ROI, operating margin, and net margin, along with
+      supporting underlying fields for validation.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: quality_ratios_sk
+        data_type: varchar
+        description: Surrogate key for ticker and fiscal_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol.
+        data_tests:
+          - not_null
+
+      - name: fiscal_date
+        data_type: date
+        description: Fiscal quarter date.
+        data_tests:
+          - not_null
+
+      - name: roa
+        data_type: numeric
+      - name: roe
+        data_type: numeric
+      - name: roi
+        data_type: numeric
+      - name: op_margin
+        data_type: numeric
+      - name: net_profit_margin
+        data_type: numeric
+
+      - name: roa_net_income_ttm
+        data_type: numeric
+      - name: roa_total_assets
+        data_type: numeric
+      - name: roe_total_equity
+        data_type: numeric
+      - name: roi_lt_investments_debt
+        data_type: numeric
+      - name: op_income_ttm
+        data_type: numeric
+      - name: op_revenue_ttm
+        data_type: numeric
+
+  - name: int_ratios__value_unified
+    description: >
+      Unified value ratios table with one row per ticker and fiscal_date.
+      Combines PE, PS, PB, and Price/FCF ratios, along with
+      supporting underlying fields for validation.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: value_ratios_sk
+        data_type: varchar
+        description: Surrogate key for ticker and fiscal_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol.
+        data_tests:
+          - not_null
+
+      - name: fiscal_date
+        data_type: date
+        description: Fiscal quarter date.
+        data_tests:
+          - not_null
+
+      - name: pe_ratio
+        data_type: numeric
+      - name: ps_ratio
+        data_type: numeric
+      - name: pb_ratio
+        data_type: numeric
+      - name: p_fcf_ratio
+        data_type: numeric
+
+      - name: pe_stock_price
+        data_type: numeric
+      - name: pe_net_eps_ttm
+        data_type: numeric
+      - name: ps_stock_price
+        data_type: numeric
+      - name: ps_sales_per_share_ttm
+        data_type: numeric
+      - name: pb_stock_price
+        data_type: numeric
+      - name: pb_book_value_per_share
+        data_type: numeric
+      - name: pfcf_stock_price
+        data_type: numeric
+      - name: pfcf_fcf_per_share_ttm
+        data_type: numeric
+
+  - name: int_ratios__all_ratios_combined
+    description: >
+      Combined ratios table with one row per ticker and fiscal_date.
+      Joins unified quality and value ratio models into a single reusable intermediate layer.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: all_ratios_sk
+        data_type: varchar
+        description: Surrogate key for ticker and fiscal_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol.
+        data_tests:
+          - not_null
+
+      - name: fiscal_date
+        data_type: date
+        description: Fiscal quarter date.
+        data_tests:
+          - not_null
+
+      - name: roa
+        data_type: numeric
+      - name: roe
+        data_type: numeric
+      - name: roi
+        data_type: numeric
+      - name: op_margin
+        data_type: numeric
+      - name: net_profit_margin
+        data_type: numeric
+      - name: roa_net_income_ttm
+        data_type: numeric
+      - name: roa_total_assets
+        data_type: numeric
+      - name: roe_total_equity
+        data_type: numeric
+      - name: roi_lt_investments_debt
+        data_type: numeric
+      - name: op_income_ttm
+        data_type: numeric
+      - name: op_revenue_ttm
+        data_type: numeric
+
+      - name: pe_ratio
+        data_type: numeric
+      - name: ps_ratio
+        data_type: numeric
+      - name: pb_ratio
+        data_type: numeric
+      - name: p_fcf_ratio
+        data_type: numeric
+
+      - name: pb_book_value_per_share
+        data_type: numeric
+      - name: pe_net_eps_ttm
+        data_type: numeric
+      - name: ps_sales_per_share_ttm
+        data_type: numeric
+      - name: pfcf_fcf_per_share_ttm
+        data_type: numeric
+
+  - name: int_ratios__ratio_growth
+    description: >
+      Quarterly ratio growth model with one row per ticker and fiscal_date.
+      Includes core quality and value ratios plus quarter-over-quarter growth fields.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ratio_growth_sk
+        data_type: varchar
+        description: Surrogate key for ticker and fiscal_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol.
+        data_tests:
+          - not_null
+
+      - name: fiscal_date
+        data_type: date
+        description: Fiscal quarter date.
+        data_tests:
+          - not_null
+
+      - name: roa
+        data_type: numeric
+      - name: roe
+        data_type: numeric
+      - name: roi
+        data_type: numeric
+      - name: op_margin
+        data_type: numeric
+      - name: net_profit_margin
+        data_type: numeric
+      - name: pe_ratio
+        data_type: numeric
+      - name: ps_ratio
+        data_type: numeric
+      - name: pb_ratio
+        data_type: numeric
+      - name: p_fcf_ratio
+        data_type: numeric
+
+      - name: roa_qoq_growth
+        data_type: numeric
+      - name: roe_qoq_growth
+        data_type: numeric
+      - name: roi_qoq_growth
+        data_type: numeric
+      - name: op_margin_qoq_growth
+        data_type: numeric
+      - name: net_profit_margin_qoq_growth
+        data_type: numeric
+      - name: pe_ratio_qoq_growth
+        data_type: numeric
+      - name: ps_ratio_qoq_growth
+        data_type: numeric
+      - name: pb_ratio_qoq_growth
+        data_type: numeric
+      - name: p_fcf_ratio_qoq_growth
+        data_type: numeric
+
+
+  - name: int_ratios__ratio_zscores
+    description: >
+      Cross-sectional z-scores for quality and value ratios, computed within
+      each fiscal_date period. Quality ratios are scored directly (higher is better).
+      Value ratios are inverted (lower multiple is better). One row per ticker and fiscal_date.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ratio_zscore_sk
+        data_type: varchar
+        description: Surrogate key for ticker and fiscal_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol.
+        data_tests:
+          - not_null
+
+      - name: fiscal_date
+        data_type: date
+        description: Fiscal quarter date.
+        data_tests:
+          - not_null
+
+      - name: roa_zscore
+        data_type: numeric
+      - name: roe_zscore
+        data_type: numeric
+      - name: roi_zscore
+        data_type: numeric
+      - name: op_margin_zscore
+        data_type: numeric
+      - name: net_profit_margin_zscore
+        data_type: numeric
+
+      - name: pe_ratio_zscore
+        data_type: numeric
+        description: Inverted z-score — positive means cheap relative to peers.
+      - name: ps_ratio_zscore
+        data_type: numeric
+        description: Inverted z-score — positive means cheap relative to peers.
+      - name: pb_ratio_zscore
+        data_type: numeric
+        description: Inverted z-score — positive means cheap relative to peers.
+      - name: p_fcf_ratio_zscore
+        data_type: numeric
+        description: Inverted z-score — positive means cheap relative to peers.        

@@ -1,0 +1,86 @@
+version: 2
+
+models:
+  - name: int_finance__fundamentals_quarterly
+    description: >
+      Quarterly pivoted fundamentals model with one row per ticker and fiscal_date.
+      Includes core raw financial metrics, selected derived features, and QoQ growth columns.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: fundamentals_quarterly_sk
+        data_type: varchar
+        description: Surrogate key for ticker and fiscal_date.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ticker
+        data_type: varchar
+        description: Stock ticker symbol.
+        data_tests:
+          - not_null
+
+      - name: fiscal_date
+        data_type: date
+        description: Fiscal quarter end date.
+        data_tests:
+          - not_null
+
+      - name: revenue
+        data_type: numeric
+      - name: gross_profit
+        data_type: numeric
+      - name: operating_income
+        data_type: numeric
+      - name: net_income
+        data_type: numeric
+      - name: ebitda
+        data_type: numeric
+      - name: eps_diluted
+        data_type: numeric
+      - name: shares_outstanding
+        data_type: numeric
+      - name: rd_expense
+        data_type: numeric
+      - name: cash_on_hand
+        data_type: numeric
+      - name: total_current_assets
+        data_type: numeric
+      - name: total_assets
+        data_type: numeric
+      - name: total_current_liabilities
+        data_type: numeric
+      - name: total_liabilities
+        data_type: numeric
+      - name: long_term_debt
+        data_type: numeric
+      - name: shareholders_equity
+        data_type: numeric
+      - name: free_cash_flow
+        data_type: numeric
+
+      - name: gross_margin
+        data_type: numeric
+      - name: ebitda_margin
+        data_type: numeric
+      - name: book_value_per_share
+        data_type: numeric
+      - name: working_capital
+        data_type: numeric
+
+      - name: revenue_qoq_growth
+        data_type: numeric
+      - name: gross_profit_qoq_growth
+        data_type: numeric
+      - name: operating_income_qoq_growth
+        data_type: numeric
+      - name: net_income_qoq_growth
+        data_type: numeric
+      - name: ebitda_qoq_growth
+        data_type: numeric
+      - name: eps_diluted_qoq_growth
+        data_type: numeric
+      - name: free_cash_flow_qoq_growth
+        data_type: numeric
