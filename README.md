@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Stock Research dbt Project
 
 A modular dbt project for equity research and macro analysis, combining market data, company fundamentals, financial ratios, and COT-based positioning signals into analytics-ready models.[1][2][3][4][5]
