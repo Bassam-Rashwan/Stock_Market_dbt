@@ -66,5 +66,15 @@ jobs:
       - name: Debug connection
         run: dbt debug
 
+      # Loads synthetic raw tables into the throwaway "dbt_ci" DB on the runner only.
+      # Never connects to Stock_DB or your local/production warehouse.
+      - name: Load CI raw fixtures
+        env:
+          PGPASSWORD: ${{ secrets.DBT_POSTGRES_PW }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+          psql -h localhost -U postgres -d dbt_ci -v ON_ERROR_STOP=1 -f ci/setup_raw_fixtures.sql
+
       - name: Run dbt build
         run: dbt build
