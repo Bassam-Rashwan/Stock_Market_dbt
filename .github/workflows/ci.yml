@@ -27,6 +27,25 @@ jobs:
       - name: Install dependencies
         run: dbt deps
 
+      - name: Create profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << 'EOF'
+          quant:
+            target: ci
+            outputs:
+              ci:
+                type: postgres
+                host: localhost
+                user: postgres
+                password: postgres
+                port: 5432
+                dbname: dbt_ci
+                schema: quant
+                threads: 4
+          EOF
+
+
       - name: Debug connection
         run: dbt debug
 
