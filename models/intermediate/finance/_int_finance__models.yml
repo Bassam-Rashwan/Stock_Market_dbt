@@ -65,8 +65,6 @@ models:
         data_type: numeric
       - name: ebitda_margin
         data_type: numeric
-      - name: book_value_per_share
-        data_type: numeric
       - name: working_capital
         data_type: numeric
 
