@@ -47,7 +47,7 @@ jobs:
       - name: Create profiles.yml
         run: |
           mkdir -p ~/.dbt
-          cat > ~/.dbt/profiles.yml << 'EOF'
+          cat > ~/.dbt/profiles.yml << EOF
           quant:
             target: ci
             outputs:
@@ -55,7 +55,7 @@ jobs:
                 type: postgres
                 host: localhost
                 user: postgres
-                password: $DBT_POSTGRES_PW
+                password: ${DBT_POSTGRES_PW}
                 port: 5432
                 dbname: dbt_ci
                 schema: quant
