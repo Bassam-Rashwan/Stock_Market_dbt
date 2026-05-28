@@ -102,9 +102,7 @@ models:
         data_type: timestamp
         description: Timestamp when staged
 
-      - name: source
-        data_type: varchar
-        description: Source system label
+
 
   - name: stg_ratios__quality_roa
     description: Cleaned ROA ratio staging model.

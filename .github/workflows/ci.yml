@@ -9,6 +9,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DBT_POSTGRES_PW: ${{ secrets.DBT_POSTGRES_PW }}
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.DBT_POSTGRES_PW }}
+          POSTGRES_DB: dbt_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -27,8 +44,37 @@ jobs:
       - name: Install dependencies
         run: dbt deps
 
+      - name: Create profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << EOF
+          quant:
+            target: ci
+            outputs:
+              ci:
+                type: postgres
+                host: localhost
+                user: postgres
+                password: ${DBT_POSTGRES_PW}
+                port: 5432
+                dbname: dbt_ci
+                schema: quant
+                threads: 4
+          EOF
+
+
       - name: Debug connection
         run: dbt debug
+
+      # Loads synthetic raw tables into the throwaway "dbt_ci" DB on the runner only.
+      # Never connects to Stock_DB or your local/production warehouse.
+      - name: Load CI raw fixtures
+        env:
+          PGPASSWORD: ${{ secrets.DBT_POSTGRES_PW }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+          psql -h localhost -U postgres -d dbt_ci -v ON_ERROR_STOP=1 -f ci/setup_raw_fixtures.sql
 
       - name: Run dbt build
         run: dbt build
